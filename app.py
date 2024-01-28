@@ -650,5 +650,5 @@ with gr.Blocks() as demo:
     iface.queue(concurrency_count=1)
 
 if __name__ == "__main__":
-    demo.launch(debug=False, enable_queue=True, server_port=args.port, server_name="0.0.0.0")  # , share=True)
+    demo.launch(debug=False, enable_queue=True, server_port=args.port, server_name="0.0.0.0", share=True)
 # iface.launch(debug=True, enable_queue=True)
