@@ -113,7 +113,7 @@ def get_frames_from_video(video_input, video_state):
     video_path = video_input
     print(video_path)
     user_name = time.time()
-    operation_log = [("", ""), ("Upload video already. Try click the image for adding targets to track and inpaint.", "Normal")]
+    operation_log = [("", ""), ("Upload video already. Try click the image for adding targets to track.", "Normal")]
 
     with zipfile.ZipFile(video_path.name) as zip_ref:
         img_file_names = sorted(zip_ref.namelist())
@@ -249,7 +249,7 @@ def add_multi_mask(video_state, interactive_state, mask_dropdown):
         mask_dropdown.append("mask_{:03d}".format(len(interactive_state["multi_mask"]["masks"])))
         select_frame, run_status = show_mask(video_state, interactive_state, mask_dropdown)
 
-        operation_log = [("", ""), ("Added a mask, use the mask select for target tracking or inpainting.", "Normal")]
+        operation_log = [("", ""), ("Added a mask, use the mask select for target tracking.", "Normal")]
     except:
         operation_log = [("Please click the left image to generate mask.", "Error"), ("", "")]
     return interactive_state, gr.update(choices=interactive_state["multi_mask"]["mask_names"], value=mask_dropdown), select_frame, [[], []], operation_log
@@ -278,7 +278,7 @@ def show_mask(video_state, interactive_state, mask_dropdown):
         mask = interactive_state["multi_mask"]["masks"][mask_number]
         select_frame = mask_painter(select_frame, mask.astype('uint8'), mask_color=mask_number + 2)
 
-    operation_log = [("", ""), ("Select {} for tracking or inpainting".format(mask_dropdown), "Normal")]
+    operation_log = [("", ""), ("Select {} for tracking".format(mask_dropdown), "Normal")]
     return resize_to_preview(select_frame), operation_log
 
 
@@ -293,7 +293,7 @@ def generate_zip(video_state):
 
 # tracking vos
 def vos_tracking_video(video_state, interactive_state, mask_dropdown):
-    operation_log = [("", ""), ("Track the selected masks, and then you can select the masks for inpainting.", "Normal")]
+    operation_log = [("", ""), ("Track the selected masks, and then you can select the masks.", "Normal")]
     model.xmem.clear_memory()
     if interactive_state["track_end_number"]:
         following_frames = video_state["origin_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]]
@@ -442,7 +442,7 @@ model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, e2fgvi_checkpoint, arg
 
 title = """<p><h1 align="center">Track-Anything</h1></p>
     """
-description = """<p>Gradio demo for Track Anything, a flexible and interactive tool for video object tracking, segmentation, and inpainting. I To use it, simply upload your video, or click one of the examples to load them. Code: <a href="https://github.com/gaomingqi/Track-Anything">https://github.com/gaomingqi/Track-Anything</a> <a href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true"><img style="display: inline; margin-top: 0em; margin-bottom: 0em" src="https://bit.ly/3gLdBN6" alt="Duplicate Space" /></a></p>"""
+description = """<p>Gradio demo for Track Anything, a flexible and interactive tool for video object tracking, segmentation. I To use it, simply upload your video, or click one of the examples to load them. Code: <a href="https://github.com/gaomingqi/Track-Anything">https://github.com/gaomingqi/Track-Anything</a> <a href="https://huggingface.co/spaces/watchtowerss/Track-Anything?duplicate=true"><img style="display: inline; margin-top: 0em; margin-bottom: 0em" src="https://bit.ly/3gLdBN6" alt="Duplicate Space" /></a></p>"""
 
 # +
 with gr.Blocks() as demo:
@@ -472,7 +472,6 @@ with gr.Blocks() as demo:
             "origin_images": None,
             "painted_images": None,
             "masks": None,
-            "inpaint_masks": None,
             "logits": None,
             "select_frame_number": 0,
             "fps": 30
@@ -487,9 +486,6 @@ with gr.Blocks() as demo:
                 video_input = gr.File(label='Input Image-Seq', file_count='single')
                 with gr.Column():
                     video_info = gr.Textbox(label="Video Info")
-                    resize_info = gr.Textbox(value="If you want to use the inpaint function, it is best to git clone the repo and use a machine with more VRAM locally. \
-                                            Alternatively, you can use the resize ratio slider to scale down the original image to around 360P resolution for faster processing.",
-                                             label="Tips for running this demo.")
                     resize_ratio_slider = gr.Slider(minimum=0.02, maximum=1, step=0.02, value=1, label="Resize ratio", visible=True, interactive=False)
 
             with gr.Row():
@@ -513,6 +509,8 @@ with gr.Blocks() as demo:
                     template_frame = gr.Image(type="pil", interactive=True, elem_id="template_frame", visible=False)
                     image_selection_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track start frame", visible=False)
                     track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frame", visible=False)
+                    with gr.Row():
+                        tracking_video_predict_button = gr.Button(value="Tracking", visible=False)
 
                 with gr.Column():
                     run_status = gr.HighlightedText(value=[("Text", "Error"), ("to be", "Label 2"), ("highlighted", "Label 3")],
@@ -521,9 +519,6 @@ with gr.Blocks() as demo:
                     video_output = gr.Video(visible=False)
                     generate_zip_btn = gr.Button(value="Generate Zip", interactive=True, visible=True)
                     download_file_zip = gr.File(label="Zipped results")
-                    with gr.Row():
-                        tracking_video_predict_button = gr.Button(value="Tracking", visible=False)
-                        inpaint_video_predict_button = gr.Button(value="Inpainting", visible=False)
 
     # first step: get the video information 
     extract_frames_button.click(
@@ -533,7 +528,7 @@ with gr.Blocks() as demo:
         ],
         outputs=[video_state, video_info, template_frame,
                  image_selection_slider, track_pause_number_slider, point_prompt, clear_button_click, Add_mask_button, template_frame,
-                 tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button, inpaint_video_predict_button, run_status]
+                 tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button, run_status]
     )
 
     # second step: select images from slider
@@ -596,7 +591,6 @@ with gr.Blocks() as demo:
                 "origin_images": None,
                 "painted_images": None,
                 "masks": None,
-                "inpaint_masks": None,
                 "logits": None,
                 "select_frame_number": 0,
                 "fps": 30
@@ -630,8 +624,7 @@ with gr.Blocks() as demo:
             video_output,
             template_frame,
             tracking_video_predict_button, image_selection_slider, track_pause_number_slider, point_prompt, clear_button_click,
-            Add_mask_button, template_frame, tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button,
-            inpaint_video_predict_button, run_status
+            Add_mask_button, template_frame, tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button, run_status
         ],
         queue=False,
         show_progress=False)
