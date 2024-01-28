@@ -530,7 +530,7 @@ with gr.Blocks() as demo:
                  image_selection_slider, track_pause_number_slider, point_prompt, clear_button_click, Add_mask_button, template_frame,
                  tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button, run_status]
     )
-    video_input.upload(fn=get_frames_from_video,
+    video_input.change(fn=get_frames_from_video,
         inputs=[
             video_input, video_state
         ],
