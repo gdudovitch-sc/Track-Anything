@@ -17,6 +17,8 @@ import zipfile
 import PIL
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
+from multiprocessing.pool import ThreadPool as Pool
+from tqdm import tqdm
 sys.path.append(sys.path[0] + "/tracker")
 sys.path.append(sys.path[0] + "/tracker/model")
 from track_anything import TrackingAnything
@@ -114,7 +116,7 @@ def get_frames_from_video(video_input, video_state):
                 image = image.resize((round2(image.size[0] * resize_ratio), round2(image.size[1] * resize_ratio)), Image.ANTIALIAS)
                 frames.append(np.array(image))
                 exifs.append(image.info['exif'])
-        with mp.Pool() as pool:
+        with Pool() as pool:
             list(tqdm(pool.imap_unordered(extract_frame, img_file_names), total=len(img_file_names)))
 
     image_size = (frames[0].shape[0], frames[0].shape[1])
