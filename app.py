@@ -93,8 +93,6 @@ def get_frames_from_video(video_input, video_state):
     """
     video_path = video_input
     print(video_path)
-    frames = []
-    exifs = []
     user_name = time.time()
     operation_log = [("", ""), ("Upload video already. Try click the image for adding targets to track and inpaint.", "Normal")]
 
@@ -107,17 +105,21 @@ def get_frames_from_video(video_input, video_state):
     with zipfile.ZipFile(video_path.name) as zip_ref:
         img_file_names = sorted(zip_ref.namelist())
 
-        def extract_frame(img_file_name):
+        frames = [None] * len(img_file_names)
+        exifs = [None] * len(img_file_names)
+
+        def extract_frame(img_file_name_i):
+            img_file_name, i = img_file_name_i
             with zip_ref.open(img_file_name) as file:
                 image = Image.open(BytesIO(file.read()))
                 image = PIL.ImageOps.exif_transpose(image)
                 max_length = max(image.size)
                 resize_ratio = 1600. / max_length
                 image = image.resize((round2(image.size[0] * resize_ratio), round2(image.size[1] * resize_ratio)), Image.ANTIALIAS)
-                frames.append(np.array(image))
-                exifs.append(image.info['exif'])
+                frames[i] = np.array(image)
+                exifs[i] = image.info['exif']
         with Pool() as pool:
-            list(tqdm(pool.imap_unordered(extract_frame, img_file_names), total=len(img_file_names)))
+            list(tqdm(pool.imap_unordered(extract_frame, zip(img_file_names, range(len(img_file_names)))), total=len(img_file_names)))
 
     image_size = (frames[0].shape[0], frames[0].shape[1])
     # initialize video_state
