@@ -40,7 +40,9 @@ def round2(num):
     return num
 
 
-def resize_by(image, resize_factor=2):
+def resize_by(image, resize_factor=0.5):
+    if isinstance(image, np.ndarray):
+        image = Image.fromarray(image)
     return image.resize((round(image.size[0] * resize_factor), round(image.size[1] * resize_factor)), Image.ANTIALIAS)
 
 
