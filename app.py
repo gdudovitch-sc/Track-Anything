@@ -41,11 +41,11 @@ def round2(num):
 
 
 def resize_by(image, resize_factor=2):
-    return image.resize((round2(image.size[0] * resize_factor), round2(image.size[1] * resize_factor)), Image.ANTIALIAS)
+    return image.resize((round(image.size[0] * resize_factor), round(image.size[1] * resize_factor)), Image.ANTIALIAS)
 
 
 def resize_to_preview(image):
-    return resize_by(image, resize_factor=RESIZE_TO_PREV_FACTOR)
+    return resize_by(image, resize_factor=1./RESIZE_TO_PREV_FACTOR)
 
 
 # download checkpoints
