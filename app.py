@@ -30,6 +30,13 @@ try:
 except:
     os.system("mim install mmcv")
 
+RESIZE_TO_PREV_FACTOR = 2
+
+def resize_by(image, resize_factor=2):
+    return image.resize((round2(image.size[0] * resize_factor), round2(image.size[1] * resize_factor)), Image.ANTIALIAS)
+
+def resize_to_preview(image):
+    return resize_by(image, resize_factor=RESIZE_TO_PREV_FACTOR)
 
 # download checkpoints
 def download_checkpoint(url, folder, filename):
@@ -138,7 +145,7 @@ def get_frames_from_video(video_input, video_state):
                                                                                    len(frames), image_size)
     model.samcontroler.sam_controler.reset_image()
     model.samcontroler.sam_controler.set_image(video_state["origin_images"][0])
-    return video_state, video_info, video_state["origin_images"][0], gr.update(visible=True, maximum=len(frames), value=1), gr.update(
+    return video_state, video_info, resize_to_preview(video_state["origin_images"][0]), gr.update(visible=True, maximum=len(frames), value=1), gr.update(
         visible=True, maximum=len(frames), value=len(frames)), \
         gr.update(visible=True), \
         gr.update(visible=True), gr.update(visible=True), \
@@ -168,7 +175,7 @@ def select_template(image_selection_slider, video_state, mask_dropdown):
         print("ok")
     operation_log = [("", ""), ("Select frame {}. Try click image and add mask for tracking.".format(image_selection_slider), "Normal")]
 
-    return video_state["painted_images"][image_selection_slider], video_state, operation_log
+    return resize_to_preview(video_state["painted_images"][image_selection_slider]), video_state, operation_log
 
 
 # set the tracking end frame
@@ -195,11 +202,12 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt: g
     """
     print('Enter sam_refine')
 
+    coordinate = "[[{},{},{}]]".format(evt.index[0] * RESIZE_TO_PREV_FACTOR,
+                                       evt.index[1] * RESIZE_TO_PREV_FACTOR,
+                                       int(point_prompt == "Positive"))
     if point_prompt == "Positive":
-        coordinate = "[[{},{},1]]".format(evt.index[0], evt.index[1])
         interactive_state["positive_click_times"] += 1
     else:
-        coordinate = "[[{},{},0]]".format(evt.index[0], evt.index[1])
         interactive_state["negative_click_times"] += 1
 
     # prompt for sam model
@@ -224,7 +232,7 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt: g
 
     operation_log = [("", ""), ("Use SAM for segment. You can try add positive and negative points by clicking. Or press Clear clicks button to refresh the image. Press Add mask button when you are satisfied with the segment", "Normal")]
     print('Done sam_refine...')
-    return painted_image, video_state, interactive_state, operation_log
+    return resize_to_preview(painted_image), video_state, interactive_state, operation_log
 
 
 def add_multi_mask(video_state, interactive_state, mask_dropdown):
@@ -245,7 +253,7 @@ def clear_click(video_state):
     click_state = [[], []]
     template_frame = video_state["origin_images"][video_state["select_frame_number"]]
     operation_log = [("", ""), ("Clear points history and refresh the image.", "Normal")]
-    return template_frame, click_state, operation_log
+    return resize_to_preview(template_frame), click_state, operation_log
 
 
 def remove_multi_mask(interactive_state, mask_dropdown):
@@ -265,7 +273,7 @@ def show_mask(video_state, interactive_state, mask_dropdown):
         select_frame = mask_painter(select_frame, mask.astype('uint8'), mask_color=mask_number + 2)
 
     operation_log = [("", ""), ("Select {} for tracking or inpainting".format(mask_dropdown), "Normal")]
-    return select_frame, operation_log
+    return resize_to_preview(select_frame), operation_log
 
 
 def generate_zip(video_state):
@@ -476,7 +484,7 @@ with gr.Blocks() as demo:
                     resize_info = gr.Textbox(value="If you want to use the inpaint function, it is best to git clone the repo and use a machine with more VRAM locally. \
                                             Alternatively, you can use the resize ratio slider to scale down the original image to around 360P resolution for faster processing.",
                                              label="Tips for running this demo.")
-                    resize_ratio_slider = gr.Slider(minimum=0.02, maximum=1, step=0.02, value=1, label="Resize ratio", visible=True)
+                    resize_ratio_slider = gr.Slider(minimum=0.02, maximum=1, step=0.02, value=1, label="Resize ratio", visible=True, interactive=False)
 
             with gr.Row():
                 # put the template frame under the radio button
