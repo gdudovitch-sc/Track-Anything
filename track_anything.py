@@ -40,7 +40,6 @@ class TrackingAnything():
     #     return mask, logit, painted_image
 
     def generator(self, images: list, template_mask:np.ndarray):
-        
         masks = []
         logits = []
         painted_images = []
@@ -78,17 +77,15 @@ if __name__ == "__main__":
     logits = None
     painted_images = None
     images = []
-    image  = np.array(PIL.Image.open('/hhd3/gaoshang/truck.jpg'))
+    image = np.array(PIL.Image.open('/hhd3/gaoshang/truck.jpg'))
     args = parse_augment()
-    # images.append(np.ones((20,20,3)).astype('uint8'))
-    # images.append(np.ones((20,20,3)).astype('uint8'))
     images.append(image)
     images.append(image)
 
-    mask = np.zeros_like(image)[:,:,0]
-    mask[0,0]= 1
-    trackany = TrackingAnything('/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth','/ssd1/gaomingqi/checkpoints/XMem-s012.pth', args)
-    masks, logits ,painted_images= trackany.generator(images, mask)
+    mask = np.zeros_like(image)[:, :, 0]
+    mask[0, 0] = 1
+    trackany = TrackingAnything('/ssd1/gaomingqi/checkpoints/sam_vit_h_4b8939.pth', '/ssd1/gaomingqi/checkpoints/XMem-s012.pth', args)
+    masks, logits, painted_images = trackany.generator(images, mask)
 
         
 
