@@ -165,7 +165,7 @@ def select_template(image_selection_slider, video_state, interactive_state, mask
 def get_end_number(track_pause_number_slider, interactive_state):
     track_pause_number_slider = track_pause_number_slider - 1
     interactive_state["track_end_number"] = track_pause_number_slider
-    operation_log = [("", ""), ("Set the tracking finish at frame {}".format(track_pause_number_slider), "Normal")
+    operation_log = [("", ""), ("Set the tracking finish at frame {}".format(track_pause_number_slider), "Normal")]
     return interactive_state, operation_log
 
 
