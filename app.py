@@ -464,8 +464,8 @@ with gr.Blocks() as demo:
     with gr.Row():
         # for user video input
         with gr.Column():
-            with gr.Row(scale=0.4):
-                video_input = gr.File(label='Input Image-Seq', autosize=True, show_progress=True)
+            with gr.Row():
+                video_input = gr.File(label='Input Image-Seq')
                 with gr.Column():
                     video_info = gr.Textbox(label="Video Info")
                     resize_info = gr.Textbox(value="If you want to use the inpaint function, it is best to git clone the repo and use a machine with more VRAM locally. \
@@ -489,7 +489,7 @@ with gr.Blocks() as demo:
                                 interactive=True,
                                 visible=False)
                             remove_mask_button = gr.Button(value="Remove mask", interactive=True, visible=False)
-                            clear_button_click = gr.Button(value="Clear clicks", interactive=True, visible=False).style(height=160)
+                            clear_button_click = gr.Button(value="Clear clicks", interactive=True, visible=False)
                             Add_mask_button = gr.Button(value="Add mask", interactive=True, visible=False)
                     template_frame = gr.Image(type="pil", interactive=True, elem_id="template_frame", visible=False)
                     image_selection_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track start frame", visible=False)
@@ -499,7 +499,7 @@ with gr.Blocks() as demo:
                     run_status = gr.HighlightedText(value=[("Text", "Error"), ("to be", "Label 2"), ("highlighted", "Label 3")],
                                                     visible=False)
                     mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="Mask selection", info=".", visible=False)
-                    video_output = gr.Video(autosize=True, visible=False)
+                    video_output = gr.Video(visible=False)
                     generate_zip_btn = gr.Button(value="Generate Zip", interactive=True, visible=True)
                     download_file_zip = gr.File(label="Zipped results")
                     with gr.Row():
@@ -634,8 +634,8 @@ with gr.Blocks() as demo:
         outputs=[video_input],
         # cache_examples=True,
     )
-    iface.queue(concurrency_count=1)
+    iface.queue()
 
 if __name__ == "__main__":
-    demo.launch(debug=False, enable_queue=True, server_port=args.port, server_name="0.0.0.0", share=True)
+    demo.launch(debug=False, server_port=args.port, server_name="0.0.0.0", share=True)
 # iface.launch(debug=True, enable_queue=True)
