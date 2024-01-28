@@ -193,6 +193,8 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt: g
         point_prompt: flag for positive or negative button click
         click_state: [[points], [labels]]
     """
+    print('Enter sam_refine')
+
     if point_prompt == "Positive":
         coordinate = "[[{},{},1]]".format(evt.index[0], evt.index[1])
         interactive_state["positive_click_times"] += 1
@@ -202,8 +204,11 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt: g
 
     # prompt for sam model
     model.samcontroler.sam_controler.reset_image()
+    print('Done model.samcontroler.sam_controler.reset_image()')
     model.samcontroler.sam_controler.set_image(video_state["origin_images"][video_state["select_frame_number"]])
+    print('Done model.samcontroler.sam_controler.set_image(video_state["origin_images"][video_state["select_frame_number"]])')
     prompt = get_prompt(click_state=click_state, click_input=coordinate)
+    print('Done prompt = get_prompt(click_state=click_state, click_input=coordinate)')
 
     mask, logit, painted_image = model.first_frame_click(
         image=video_state["origin_images"][video_state["select_frame_number"]],
@@ -211,13 +216,14 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt: g
         labels=np.array(prompt["input_label"]),
         multimask=prompt["multimask_output"],
     )
+    print('Done model.first_frame_click(')
+
     video_state["masks"][video_state["select_frame_number"]] = mask
     video_state["logits"][video_state["select_frame_number"]] = logit
     video_state["painted_images"][video_state["select_frame_number"]] = painted_image
 
-    operation_log = [("", ""), (
-    "Use SAM for segment. You can try add positive and negative points by clicking. Or press Clear clicks button to refresh the image. Press Add mask button when you are satisfied with the segment",
-    "Normal")]
+    operation_log = [("", ""), ("Use SAM for segment. You can try add positive and negative points by clicking. Or press Clear clicks button to refresh the image. Press Add mask button when you are satisfied with the segment", "Normal")]
+    print('Done sam_refine...')
     return painted_image, video_state, interactive_state, operation_log
 
 
@@ -232,11 +238,10 @@ def add_multi_mask(video_state, interactive_state, mask_dropdown):
         operation_log = [("", ""), ("Added a mask, use the mask select for target tracking or inpainting.", "Normal")]
     except:
         operation_log = [("Please click the left image to generate mask.", "Error"), ("", "")]
-    return interactive_state, gr.update(choices=interactive_state["multi_mask"]["mask_names"], value=mask_dropdown), select_frame, [[],
-                                                                                                                                    []], operation_log
+    return interactive_state, gr.update(choices=interactive_state["multi_mask"]["mask_names"], value=mask_dropdown), select_frame, [[], []], operation_log
 
 
-def clear_click(video_state, click_state):
+def clear_click(video_state):
     click_state = [[], []]
     template_frame = video_state["origin_images"][video_state["select_frame_number"]]
     operation_log = [("", ""), ("Clear points history and refresh the image.", "Normal")]
@@ -620,7 +625,7 @@ with gr.Blocks() as demo:
     # points clear
     clear_button_click.click(
         fn=clear_click,
-        inputs=[video_state, click_state, ],
+        inputs=[video_state],
         outputs=[template_frame, click_state, run_status],
     )
     # set example
