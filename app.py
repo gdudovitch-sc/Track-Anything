@@ -32,11 +32,21 @@ except:
 
 RESIZE_TO_PREV_FACTOR = 2
 
+
+def round2(num):
+    num = round(num)
+    if num % 2 != 0:
+        num += 1
+    return num
+
+
 def resize_by(image, resize_factor=2):
     return image.resize((round2(image.size[0] * resize_factor), round2(image.size[1] * resize_factor)), Image.ANTIALIAS)
 
+
 def resize_to_preview(image):
     return resize_by(image, resize_factor=RESIZE_TO_PREV_FACTOR)
+
 
 # download checkpoints
 def download_checkpoint(url, folder, filename):
@@ -102,12 +112,6 @@ def get_frames_from_video(video_input, video_state):
     print(video_path)
     user_name = time.time()
     operation_log = [("", ""), ("Upload video already. Try click the image for adding targets to track and inpaint.", "Normal")]
-
-    def round2(num):
-        num = round(num)
-        if num % 2 != 0:
-            num += 1
-        return num
 
     with zipfile.ZipFile(video_path.name) as zip_ref:
         img_file_names = sorted(zip_ref.namelist())
@@ -478,7 +482,7 @@ with gr.Blocks() as demo:
         # for user video input
         with gr.Column():
             with gr.Row():
-                video_input = gr.File(label='Input Image-Seq')
+                video_input = gr.File(label='Input Image-Seq', file_count='single')
                 with gr.Column():
                     video_info = gr.Textbox(label="Video Info")
                     resize_info = gr.Textbox(value="If you want to use the inpaint function, it is best to git clone the repo and use a machine with more VRAM locally. \
