@@ -5,24 +5,23 @@ import cv2
 import numpy as np
 import os
 import sys
-
-sys.path.append(sys.path[0] + "/tracker")
-sys.path.append(sys.path[0] + "/tracker/model")
-from track_anything import TrackingAnything
-from track_anything import parse_augment
 import requests
 import json
 import torchvision
 import torch
-from tools.painter import mask_painter
 import psutil
 import time
 import shutil
 from glob import glob
 import zipfile
 import PIL
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
+sys.path.append(sys.path[0] + "/tracker")
+sys.path.append(sys.path[0] + "/tracker/model")
+from track_anything import TrackingAnything
+from track_anything import parse_augment
+from tools.painter import mask_painter
 
 try:
     from mmcv.cnn import ConvModule
@@ -105,8 +104,8 @@ def get_frames_from_video(video_input, video_state):
 
     with zipfile.ZipFile(video_path.name) as zip_ref:
         img_file_names = sorted(zip_ref.namelist())
-        for img_file_name in img_file_names:
-            print(img_file_name)
+
+        def extract_frame(img_file_name):
             with zip_ref.open(img_file_name) as file:
                 image = Image.open(BytesIO(file.read()))
                 image = PIL.ImageOps.exif_transpose(image)
@@ -115,6 +114,8 @@ def get_frames_from_video(video_input, video_state):
                 image = image.resize((round2(image.size[0] * resize_ratio), round2(image.size[1] * resize_ratio)), Image.ANTIALIAS)
                 frames.append(np.array(image))
                 exifs.append(image.info['exif'])
+        with mp.Pool() as pool:
+            list(tqdm(pool.imap_unordered(extract_frame, img_file_names), total=len(img_file_names)))
 
     image_size = (frames[0].shape[0], frames[0].shape[1])
     # initialize video_state
@@ -150,7 +151,7 @@ def run_example(example):
 # get the select frame from gradio slider
 
 
-def select_template(image_selection_slider, video_state, interactive_state, mask_dropdown):
+def select_template(image_selection_slider, video_state, mask_dropdown):
     image_selection_slider = image_selection_slider - 1
     video_state["select_frame_number"] = image_selection_slider
 
@@ -159,13 +160,11 @@ def select_template(image_selection_slider, video_state, interactive_state, mask
     model.samcontroler.sam_controler.set_image(video_state["origin_images"][image_selection_slider])
 
     # update the masks when select a new template frame
-    # if video_state["masks"][image_selection_slider] is not None:
-    # video_state["painted_images"][image_selection_slider] = mask_painter(video_state["origin_images"][image_selection_slider], video_state["masks"][image_selection_slider])
     if mask_dropdown:
         print("ok")
     operation_log = [("", ""), ("Select frame {}. Try click image and add mask for tracking.".format(image_selection_slider), "Normal")]
 
-    return video_state["painted_images"][image_selection_slider], video_state, interactive_state, operation_log
+    return video_state["painted_images"][image_selection_slider], video_state, operation_log
 
 
 # set the tracking end frame
@@ -343,18 +342,7 @@ def save_masks(video_state):
                                   exif=exif)
         i += 1
 
-
-# extracting masks from mask_dropdown
-# def extract_sole_mask(video_state, mask_dropdown):
-#     combined_masks = 
-#     unique_masks = np.unique(combined_masks)
-#     return 0 
-
-# +
-from PIL import Image, ImageDraw, ImageFont
-
-
-def add_text_to_image(img, text, position=(100, 100), font_size=240, text_color=(255, 255, 255)):
+def add_text_to_image(img, text, font_size=240):
     img = Image.fromarray(img)
     # Open the image
     # Create a drawing object
@@ -366,14 +354,9 @@ def add_text_to_image(img, text, position=(100, 100), font_size=240, text_color=
     # Specify the position, font size, and color of the text
     x, y = img.size[1] // 3, img.size[0] // 5
     font_size = font_size
-    color = text_color
 
     # Add text to the image
-    print(text)
     draw.text((x, y), text, font=font, fill=128, font_size=font_size)
-
-    #     draw.line((0, 0) + img.size, fill=128)
-    #     draw.line((0, img.size[1], img.size[0], 0), fill=128)
 
     # Save the modified image
     return np.array(img)
@@ -504,7 +487,7 @@ with gr.Blocks() as demo:
                             remove_mask_button = gr.Button(value="Remove mask", interactive=True, visible=False)
                             clear_button_click = gr.Button(value="Clear clicks", interactive=True, visible=False).style(height=160)
                             Add_mask_button = gr.Button(value="Add mask", interactive=True, visible=False)
-                    template_frame = gr.Image(type="pil", interactive=True, elem_id="template_frame", visible=False).style(height=360)
+                    template_frame = gr.Image(type="pil", interactive=True, elem_id="template_frame", visible=False)
                     image_selection_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track start frame", visible=False)
                     track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frame", visible=False)
 
@@ -512,7 +495,7 @@ with gr.Blocks() as demo:
                     run_status = gr.HighlightedText(value=[("Text", "Error"), ("to be", "Label 2"), ("highlighted", "Label 3")],
                                                     visible=False)
                     mask_dropdown = gr.Dropdown(multiselect=True, value=[], label="Mask selection", info=".", visible=False)
-                    video_output = gr.Video(autosize=True, visible=False).style(height=360)
+                    video_output = gr.Video(autosize=True, visible=False)
                     generate_zip_btn = gr.Button(value="Generate Zip", interactive=True, visible=True)
                     download_file_zip = gr.File(label="Zipped results")
                     with gr.Row():
@@ -532,8 +515,8 @@ with gr.Blocks() as demo:
 
     # second step: select images from slider
     image_selection_slider.release(fn=select_template,
-                                   inputs=[image_selection_slider, video_state, interactive_state],
-                                   outputs=[template_frame, video_state, interactive_state, run_status], api_name="select_image")
+                                   inputs=[image_selection_slider, video_state],
+                                   outputs=[template_frame, video_state, run_status], api_name="select_image")
     track_pause_number_slider.release(fn=get_end_number,
                                       inputs=[track_pause_number_slider, interactive_state],
                                       outputs=[interactive_state, run_status], api_name="end_image")
