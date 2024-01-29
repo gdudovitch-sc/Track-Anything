@@ -19,6 +19,7 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from multiprocessing.pool import ThreadPool as Pool
 from tqdm import tqdm
+import time
 sys.path.append(sys.path[0] + "/tracker")
 sys.path.append(sys.path[0] + "/tracker/model")
 from track_anything import TrackingAnything
@@ -138,7 +139,7 @@ def get_frames_from_video(video_input, interactive_state):
     # initialize video_state
     video_state = {
         "user_name": user_name,
-        "video_name": os.path.split(video_path.name)[-1],
+        "video_name": os.path.split(video_path.name)[-1] + '_' + time.strftime("%Y%m%d-%H%M%S"),
         "exifs": exifs,
         "origin_images": frames,
         "painted_images": frames.copy(),
@@ -288,6 +289,8 @@ def generate_zip(video_state):
     zips_folder = './result/zips/'
     os.makedirs(zips_folder, exist_ok=True)
     zip_file_path = '{}/{}'.format(zips_folder, video_state["video_name"].split('.')[0])
+    if os.path.exists(zip_file_path+'.zip'):
+        os.remove(zip_file_path+'.zip')
     shutil.make_archive(zip_file_path, 'zip', './result/mask/{}'.format(video_state["video_name"].split('.')[0]))
     return zip_file_path + '.zip'
 
