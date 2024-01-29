@@ -257,8 +257,8 @@ def add_multi_mask(video_state, interactive_state, mask_dropdown):
 
 def clear_click(video_state):
     click_state = [[], []]
-    interactive_state["negative_click_times"] = 0
-    interactive_state["positive_click_times"] = 0
+    interactive_state["negative_click_times"] -= interactive_state["negative_click_times"]
+    interactive_state["positive_click_times"] -= interactive_state["positive_click_times"]
     template_frame = video_state["origin_images"][video_state["select_frame_number"]]
     operation_log = [("", ""), ("Clear points history and refresh the image.", "Normal")]
     return resize_to_preview(template_frame), click_state, operation_log
