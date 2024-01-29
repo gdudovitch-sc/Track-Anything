@@ -131,7 +131,7 @@ def get_frames_from_video(video_input, interactive_state):
                 resize_ratio = 1600. / max_length
                 image = image.resize((round2(image.size[0] * resize_ratio), round2(image.size[1] * resize_ratio)), Image.ANTIALIAS)
                 frames[i] = np.array(image)
-                exifs[i] = image.info['exif']
+                exifs[i] = image.info.get('exif', None)
         with Pool() as pool:
             list(tqdm(pool.imap_unordered(extract_frame, zip(img_file_names, range(len(img_file_names)))), total=len(img_file_names)))
 
@@ -354,10 +354,8 @@ def save_masks(video_state):
     print("save mask")
     for mask, img, exif in zip(video_state["masks"], video_state["origin_images"], video_state["exifs"]):
         # np.save(os.path.join('./result/mask/{}'.format(video_state["video_name"].split('.')[0]), '{:05d}.npy'.format(i)), mask)
-        Image.fromarray(mask * 255).save(
-            os.path.join('./result/mask/{}/masks'.format(video_state["video_name"].split('.')[0]), '{:05d}.png'.format(i)))
-        Image.fromarray(img).save(os.path.join('./result/mask/{}'.format(video_state["video_name"].split('.')[0]), '{:05d}.jpg'.format(i)),
-                                  exif=exif)
+        Image.fromarray(((mask > 0) * 255).astype(np.uint8)).save(os.path.join('./result/mask/{}/masks'.format(video_state["video_name"].split('.')[0]), '{:05d}.png'.format(i)))
+        Image.fromarray(img).save(os.path.join('./result/mask/{}'.format(video_state["video_name"].split('.')[0]), '{:05d}.jpg'.format(i)),exif=exif)
         i += 1
 
 def add_text_to_image(img, text, font_size=240):
