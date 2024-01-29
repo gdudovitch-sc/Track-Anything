@@ -128,7 +128,7 @@ def get_frames_from_video(video_input, interactive_state):
                 image = Image.open(BytesIO(file.read()))
                 image = PIL.ImageOps.exif_transpose(image)
                 max_length = max(image.size)
-                resize_ratio = 1600. / max_length
+                resize_ratio = interactive_state["resize_ratio"] * 1600. / max_length
                 image = image.resize((round2(image.size[0] * resize_ratio), round2(image.size[1] * resize_ratio)), Image.ANTIALIAS)
                 frames[i] = np.array(image)
                 exifs[i] = image.info.get('exif', None)
@@ -476,7 +476,7 @@ with gr.Blocks() as demo:
                 video_input = gr.File(label='Input Image-Seq', file_count='single')
                 with gr.Column():
                     video_info = gr.Textbox(label="Video Info")
-                    resize_ratio_slider = gr.Slider(minimum=0.02, maximum=1, step=0.02, value=1, label="Resize ratio", visible=True, interactive=False)
+                    resize_ratio_slider = gr.Slider(minimum=0.02, maximum=1, step=0.02, value=1, label="Resize ratio", visible=True, interactive=True)
 
             with gr.Row():
                 # put the template frame under the radio button
