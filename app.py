@@ -299,7 +299,7 @@ def generate_zip(video_state):
 def vos_tracking_video(video_state, interactive_state, mask_dropdown):
     operation_log = [("", ""), ("Track the selected masks, and then you can select the masks.", "Normal")]
     model.xmem.clear_memory()
-    following_frames = video_state["origin_images"][video_state["select_frame_number"]:]
+    following_frames = video_state["origin_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1]
 
     if interactive_state["multi_mask"]["masks"]:
         if len(mask_dropdown) == 0:
@@ -325,8 +325,8 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
     # clear GPU memory
     model.xmem.clear_memory()
 
-    video_state["masks"][video_state["select_frame_number"]:] = masks
-    video_state["painted_images"][video_state["select_frame_number"]:] = painted_images
+    video_state["masks"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1] = masks
+    video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1] = painted_images
 
     video_output = generate_video_from_frames(
         video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1],
@@ -341,7 +341,6 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
         interactive_state["positive_click_times"],
         interactive_state["negative_click_times"]))
 
-    #### shanggao code for mask save
     if interactive_state["mask_save"]:
         save_masks(video_state)
     return video_output, video_state, interactive_state, operation_log
