@@ -296,7 +296,7 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
     operation_log = [("", ""), ("Track the selected masks, and then you can select the masks.", "Normal")]
     model.xmem.clear_memory()
     if interactive_state["track_end_number"]:
-        following_frames = video_state["origin_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]]
+        following_frames = video_state["origin_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1]
     else:
         following_frames = video_state["origin_images"][video_state["select_frame_number"]:]
 
@@ -325,16 +325,16 @@ def vos_tracking_video(video_state, interactive_state, mask_dropdown):
     model.xmem.clear_memory()
 
     if interactive_state["track_end_number"]:
-        video_state["masks"][video_state["select_frame_number"]:interactive_state["track_end_number"]] = masks
-        video_state["logits"][video_state["select_frame_number"]:interactive_state["track_end_number"]] = logits
-        video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]] = painted_images
+        video_state["masks"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1] = masks
+        video_state["logits"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1] = logits
+        video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1] = painted_images
     else:
         video_state["masks"][video_state["select_frame_number"]:] = masks
         video_state["logits"][video_state["select_frame_number"]:] = logits
         video_state["painted_images"][video_state["select_frame_number"]:] = painted_images
 
     video_output = generate_video_from_frames(
-        video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]],
+        video_state["painted_images"][video_state["select_frame_number"]:interactive_state["track_end_number"]+1],
         output_path="./result/track/{}.mp4".format(video_state["video_name"]),
         fps=fps,
         start_id=video_state["select_frame_number"])  # import video_input to name the output video
