@@ -397,7 +397,7 @@ def generate_video_from_frames(frames, output_path, fps=30, start_id=0):
     """
     print('generate_video_from_frames')
     for i in range(len(frames)):
-        frames[i] = add_text_to_image(frames[i], str(i + start_id))
+        frames[i] = add_text_to_image(frames[i], str(i + start_id+1))
     frames = torch.from_numpy(np.asarray(frames))
 
     if not os.path.exists(os.path.dirname(output_path)):
@@ -521,15 +521,15 @@ with gr.Blocks() as demo:
                     download_file_zip = gr.File(label="Zipped results")
 
     # first step: get the video information 
-    extract_frames_button.click(
-        fn=get_frames_from_video,
-        inputs=[
-            video_input, video_state
-        ],
-        outputs=[video_state, video_info, template_frame,
-                 image_selection_slider, track_pause_number_slider, point_prompt, clear_button_click, Add_mask_button, template_frame,
-                 tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button, run_status]
-    )
+    # extract_frames_button.click(
+    #     fn=get_frames_from_video,
+    #     inputs=[
+    #         video_input, video_state
+    #     ],
+    #     outputs=[video_state, video_info, template_frame,
+    #              image_selection_slider, track_pause_number_slider, point_prompt, clear_button_click, Add_mask_button, template_frame,
+    #              tracking_video_predict_button, video_output, mask_dropdown, remove_mask_button, run_status]
+    # )
     video_input.change(fn=get_frames_from_video,
         inputs=[
             video_input, video_state
