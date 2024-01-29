@@ -255,13 +255,13 @@ def add_multi_mask(video_state, interactive_state, mask_dropdown):
     return interactive_state, gr.update(choices=interactive_state["multi_mask"]["mask_names"], value=mask_dropdown), select_frame, [[], []], operation_log
 
 
-def clear_click(video_state):
+def clear_click(video_state, interactive_state):
     click_state = [[], []]
-    interactive_state["negative_click_times"] -= interactive_state["negative_click_times"]
-    interactive_state["positive_click_times"] -= interactive_state["positive_click_times"]
+    interactive_state["negative_click_times"] = 0
+    interactive_state["positive_click_times"] = 0
     template_frame = video_state["origin_images"][video_state["select_frame_number"]]
     operation_log = [("", ""), ("Clear points history and refresh the image.", "Normal")]
-    return resize_to_preview(template_frame), click_state, operation_log
+    return resize_to_preview(template_frame), interactive_state, click_state, operation_log
 
 
 def remove_multi_mask(interactive_state, mask_dropdown):
@@ -617,8 +617,8 @@ with gr.Blocks() as demo:
     # points clear
     clear_button_click.click(
         fn=clear_click,
-        inputs=[video_state],
-        outputs=[template_frame, click_state, run_status],
+        inputs=[video_state, interactive_state],
+        outputs=[template_frame, interactive_state, click_state, run_status],
     )
     # set example
     gr.Markdown("##  Examples")
