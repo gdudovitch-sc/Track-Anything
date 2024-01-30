@@ -94,7 +94,7 @@ class SamControler():
 
         #  find positive
         prompts = {
-            'mask_input': mask
+            'mask_input': cv2.resize(mask, (256, 256), interpolation=cv2.INTER_CUBIC)[None]
         }
         masks, scores, logits = self.sam_controler.predict(prompts, 'mask', multimask)
         mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]

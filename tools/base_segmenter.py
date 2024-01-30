@@ -15,6 +15,7 @@ class BaseSegmenter:
         """
         device: model device
         SAM_checkpoint: path of SAM checkpoint
+
         model_type: vit_b, vit_l, vit_h
         """
         print(f"Initializing BaseSegmenter to {device}")
@@ -72,7 +73,7 @@ class BaseSegmenter:
                                                            mask_input=prompts['mask_input'],
                                                            multimask_output=multimask)
         else:
-            raise ("Not implement now!")
+            raise "Not implement now!"
         # masks (n, h, w), scores (n,), logits (n, 256, 256)
         return masks, scores, logits
 

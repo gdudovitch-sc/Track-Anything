@@ -258,7 +258,7 @@ def refine_mask(video_state, interactive_state):
     print(f'video_state["masks"][video_state["select_frame_number"].shape={video_state["masks"][video_state["select_frame_number"]].shape}')
     mask, logit, painted_image = model.refine_mask(
         image=video_state["origin_images"][video_state["select_frame_number"]],
-        mask=video_state["masks"][video_state["select_frame_number"]][None],
+        mask=video_state["masks"][video_state["select_frame_number"]],
         multimask=True,
     )
     print('Done model.refine_mask')
