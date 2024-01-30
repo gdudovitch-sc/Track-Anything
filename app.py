@@ -241,6 +241,34 @@ def sam_refine(video_state, point_prompt, click_state, interactive_state, evt: g
     print('Done sam_refine...')
     return resize_to_preview(painted_image), video_state, interactive_state, operation_log
 
+def refine_mask(video_state, interactive_state):
+    """
+    Args:
+        template_frame: PIL.Image
+        point_prompt: flag for positive or negative button click
+        click_state: [[points], [labels]]
+    """
+    # prompt for sam model
+    model.samcontroler.sam_controler.reset_image()
+    print('Done model.samcontroler.sam_controler.reset_image()')
+    model.samcontroler.sam_controler.set_image(video_state["origin_images"][video_state["select_frame_number"]])
+    print('Done model.samcontroler.sam_controler.set_image(video_state["origin_images"][video_state["select_frame_number"]])')
+    print('Done prompt = get_prompt(click_state=click_state, click_input=coordinate)')
+
+    mask, logit, painted_image = model.refine_mask(
+        image=video_state["origin_images"][video_state["select_frame_number"]],
+        mask=video_state["masks"][video_state["select_frame_number"]],
+        multimask=True,
+    )
+    print('Done model.refine_mask')
+
+    video_state["masks"][video_state["select_frame_number"]] = mask
+    video_state["painted_images"][video_state["select_frame_number"]] = painted_image
+
+    operation_log = [("", ""), ("Use SAM for segment. You can try add positive and negative points by clicking. Or press Clear clicks button to refresh the image. Press Add mask button when you are satisfied with the segment", "Normal")]
+    print('Done refine_mask...')
+    return resize_to_preview(painted_image), video_state, interactive_state, operation_log
+
 
 def add_multi_mask(video_state, interactive_state, mask_dropdown):
     try:
@@ -492,6 +520,7 @@ with gr.Blocks() as demo:
                             remove_mask_button = gr.Button(value="Remove mask", interactive=True, visible=False)
                             clear_button_click = gr.Button(value="Clear clicks", interactive=True, visible=False)
                             Add_mask_button = gr.Button(value="Add mask", interactive=True, visible=False)
+                            refine_button = gr.Button(value="Refine", interactive=True, visible=True)
                     template_frame = gr.Image(type="pil", interactive=True, elem_id="template_frame", visible=False)
                     image_selection_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track start frame", visible=False)
                     track_pause_number_slider = gr.Slider(minimum=1, maximum=100, step=1, value=1, label="Track end frame", visible=False)
@@ -522,6 +551,13 @@ with gr.Blocks() as demo:
     resize_ratio_slider.release(fn=get_resize_ratio,
                                 inputs=[resize_ratio_slider, interactive_state],
                                 outputs=[interactive_state], api_name="resize_ratio")
+
+    # click select image to get mask using sam
+    refine_button.select(
+        fn=refine_mask,
+        inputs=[video_state, interactive_state],
+        outputs=[template_frame, video_state, interactive_state, run_status]
+    )
 
     # click select image to get mask using sam
     template_frame.select(

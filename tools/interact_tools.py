@@ -29,11 +29,9 @@ contour_width = 5
 
 class SamControler():
     def __init__(self, SAM_checkpoint, model_type, device):
-        '''
+        """
         initialize sam controler
-        '''
-
-    
+        """
         self.sam_controler = BaseSegmenter(SAM_checkpoint, model_type, device)
         
     
@@ -44,8 +42,7 @@ class SamControler():
     #     self.sam_controler.reset_image()
     #     self.sam_controler.set_image(image)
     #     return 
-    
-    
+
     def first_frame_click(self, image: np.ndarray, points:np.ndarray, labels: np.ndarray, multimask=True,mask_color=3):
         '''
         it is used in first frame in video
@@ -70,7 +67,7 @@ class SamControler():
             masks, scores, logits = self.sam_controler.predict(prompts, 'both', multimask)
             mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
         else:
-           #find positive
+            #  find positive
             prompts = {
                 'point_coords': points,
                 'point_labels': labels,
@@ -87,7 +84,26 @@ class SamControler():
         painted_image = Image.fromarray(painted_image)
         
         return mask, logit, painted_image
-    
+
+    def refine_mask(self, image: np.ndarray, mask: np.ndarray, multimask=True, mask_color=3):
+        '''
+        it is used in first frame in video
+        return: mask, logit, painted image(mask+point)
+        '''
+        self.sam_controler.set_image(image)
+
+        #  find positive
+        prompts = {
+            'mask_input': mask
+        }
+        masks, scores, logits = self.sam_controler.predict(prompts, 'mask', multimask)
+        mask, logit = masks[np.argmax(scores)], logits[np.argmax(scores), :, :]
+
+        painted_image = mask_painter(image, mask.astype('uint8'), mask_color, mask_alpha, contour_color, contour_width)
+        painted_image = Image.fromarray(painted_image)
+
+        return mask, logit, painted_image
+
     # def interact_loop(self, image:np.ndarray, same: bool, points:np.ndarray, labels: np.ndarray, logits: np.ndarray=None, multimask=True):
     #     origal_image = self.sam_controler.orignal_image
     #     if same: 
