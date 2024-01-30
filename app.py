@@ -255,9 +255,10 @@ def refine_mask(video_state, interactive_state):
     print('Done model.samcontroler.sam_controler.set_image(video_state["origin_images"][video_state["select_frame_number"]])')
     print('Done prompt = get_prompt(click_state=click_state, click_input=coordinate)')
 
+    print(f'video_state["masks"][video_state["select_frame_number"].shape={video_state["masks"][video_state["select_frame_number"]].shape}')
     mask, logit, painted_image = model.refine_mask(
         image=video_state["origin_images"][video_state["select_frame_number"]],
-        mask=video_state["masks"][video_state["select_frame_number"]],
+        mask=video_state["masks"][video_state["select_frame_number"]][None, None],
         multimask=True,
     )
     print('Done model.refine_mask')
@@ -553,7 +554,7 @@ with gr.Blocks() as demo:
                                 outputs=[interactive_state], api_name="resize_ratio")
 
     # click select image to get mask using sam
-    refine_button.select(
+    refine_button.click(
         fn=refine_mask,
         inputs=[video_state, interactive_state],
         outputs=[template_frame, video_state, interactive_state, run_status]
