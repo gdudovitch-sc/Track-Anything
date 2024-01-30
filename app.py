@@ -117,7 +117,8 @@ def get_frames_from_video(video_input, interactive_state):
     operation_log = [("", ""), ("Upload video already. Try click the image for adding targets to track.", "Normal")]
 
     with zipfile.ZipFile(video_path.name) as zip_ref:
-        img_file_names = sorted(zip_ref.namelist())
+        img_file_names = sorted(zip_ref.infolist())
+        img_file_names = [_.filename for _ in img_file_names if not _.is_dir()]
 
         frames = [None] * len(img_file_names)
         exifs = [None] * len(img_file_names)
@@ -414,9 +415,9 @@ SAM_checkpoint_url_dict = {
 }
 sam_checkpoint = SAM_checkpoint_dict[args.sam_model_type]
 sam_checkpoint_url = SAM_checkpoint_url_dict[args.sam_model_type]
-xmem_checkpoint = "XMem-s012.pth"
+# xmem_checkpoint = "XMem-s012.pth"
 # xmem_checkpoint = "XMem.pth"
-# xmem_checkpoint = "XMem-no-sensory.pth"
+xmem_checkpoint = "XMem-no-sensory.pth"
 xmem_checkpoint_url = f"https://github.com/hkchengrex/XMem/releases/download/v1.0/{xmem_checkpoint}"
 
 folder = "./checkpoints"
