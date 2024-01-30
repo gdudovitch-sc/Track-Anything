@@ -398,8 +398,6 @@ def generate_video_from_frames(frames, output_path, fps=30, start_id=0):
     return output_path
 
 
-# -
-
 # args, defined in track_anything.py
 args = parse_augment()
 
@@ -417,20 +415,19 @@ SAM_checkpoint_url_dict = {
 sam_checkpoint = SAM_checkpoint_dict[args.sam_model_type]
 sam_checkpoint_url = SAM_checkpoint_url_dict[args.sam_model_type]
 xmem_checkpoint = "XMem-s012.pth"
-xmem_checkpoint_url = "https://github.com/hkchengrex/XMem/releases/download/v1.0/XMem-s012.pth"
-e2fgvi_checkpoint = "E2FGVI-HQ-CVPR22.pth"
-e2fgvi_checkpoint_id = "10wGdKSUOie0XmCr8SQ2A2FeDe-mfn5w3"
+# xmem_checkpoint = "XMem.pth"
+# xmem_checkpoint = "XMem-no-sensory.pth"
+xmem_checkpoint_url = f"https://github.com/hkchengrex/XMem/releases/download/v1.0/{xmem_checkpoint}"
 
 folder = "./checkpoints"
 SAM_checkpoint = download_checkpoint(sam_checkpoint_url, folder, sam_checkpoint)
 xmem_checkpoint = download_checkpoint(xmem_checkpoint_url, folder, xmem_checkpoint)
-e2fgvi_checkpoint = download_checkpoint_from_google_drive(e2fgvi_checkpoint_id, folder, e2fgvi_checkpoint)
 args.port = 7860
 args.device = "cuda:0"
 args.mask_save = False
 
 # initialize sam, xmem, e2fgvi models
-model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, e2fgvi_checkpoint, args)
+model = TrackingAnything(SAM_checkpoint, xmem_checkpoint, args)
 
 title = """<p><h1 align="center">Track-Anything</h1></p>
     """

@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 
+
 def all_to_onehot(masks, labels):
     if len(masks.shape) == 3:
         Ms = np.zeros((len(labels), masks.shape[0], masks.shape[1], masks.shape[2]), dtype=np.uint8)
@@ -11,6 +12,7 @@ def all_to_onehot(masks, labels):
         Ms[ni] = (masks == l).astype(np.uint8)
         
     return Ms
+
 
 class MaskMapper:
     """
@@ -40,7 +42,7 @@ class MaskMapper:
     def convert_mask(self, mask, exhaustive=False):
         # mask is in index representation, H*W numpy array
         labels = np.unique(mask).astype(np.uint8)
-        labels = labels[labels!=0].tolist()
+        labels = labels[labels != 0].tolist()
 
         new_labels = list(set(labels) - set(self.labels))
         if not exhaustive:
@@ -66,7 +68,6 @@ class MaskMapper:
         # mask num_objects*H*W
         return mask, new_mapped_labels
 
-
     def remap_index_mask(self, mask):
         # mask is in index representation, H*W numpy array
         if self.coherent:
@@ -74,5 +75,5 @@ class MaskMapper:
 
         new_mask = np.zeros_like(mask)
         for l, i in self.remappings.items():
-            new_mask[mask==i] = l
+            new_mask[mask == i] = l
         return new_mask
