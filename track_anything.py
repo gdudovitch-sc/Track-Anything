@@ -20,6 +20,10 @@ class TrackingAnything:
         mask, logit, painted_image = self.samcontroler.first_frame_click(image, points, labels, multimask)
         return mask, logit, painted_image
 
+    def refine_mask(self, image: np.ndarray, mask:np.ndarray, multimask=True):
+        mask, logit, painted_image = self.samcontroler.refine_mask(image, mask, multimask)
+        return mask, logit, painted_image
+
     def generator(self, images: list, template_mask: np.ndarray):
         masks = []
         logits = []
