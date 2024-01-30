@@ -90,6 +90,7 @@ class SamControler():
         it is used in first frame in video
         return: mask, logit, painted image(mask+point)
         '''
+        self.sam_controler.reset_image()
         self.sam_controler.set_image(image)
 
         #  find positive
